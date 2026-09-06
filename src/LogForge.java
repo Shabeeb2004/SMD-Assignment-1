@@ -11,6 +11,9 @@ public class LogForge {
     static int warnCount = 0;
     static int errorCount = 0;
 
+    static LogEntry[] entries = new LogEntry[5];
+    static int entryCount = 0;
+
     public static void main(String[] args) {
         if (args.length < 1) {
             System.out.println("Usage: java LogForge <logfile>");
@@ -29,10 +32,18 @@ public class LogForge {
                     continue;
                 }
                 validRecords++;
+
+                String timestamp = fields[0];
+                String service = fields[1];
                 String level = fields[2];
+                int requestId = parseInt(fields[3]);
+                String message = fields[4];
+
                 if (level.equals("INFO")) infoCount++;
                 else if (level.equals("WARN")) warnCount++;
                 else if (level.equals("ERROR")) errorCount++;
+
+                addEntry(new LogEntry(timestamp, service, level, requestId, message));
             }
             sc.close();
         } catch (FileNotFoundException e) {
@@ -48,9 +59,23 @@ public class LogForge {
         System.out.println("ERROR: " + errorCount);
     }
 
+    static void addEntry(LogEntry e) {
+        if (entryCount == entries.length) {
+            LogEntry[] bigger = new LogEntry[entries.length * 2];
+            for (int i = 0; i < entries.length; i++) bigger[i] = entries[i];
+            entries = bigger;
+        }
+        entries[entryCount++] = e;
+    }
+
+    static int parseInt(String s) {
+        int value = 0;
+        for (int i = 0; i < s.length(); i++) value = value * 10 + (s.charAt(i) - '0');
+        return value;
+    }
+
     static boolean isValidRecord(String[] fields) {
         if (fields.length != 5) return false;
-
         String timestamp = fields[0];
         String level = fields[2];
         String requestIdStr = fields[3];
