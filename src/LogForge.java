@@ -35,8 +35,28 @@ public class LogForge {
         }
         return null;
     }
+    static void sortServicesByErrorRate() {
+        for (int i = 1; i < serviceCount; i++) {
+            ServiceStats key = services[i];
+            int j = i - 1;
+            while (j >= 0 && shouldComeBefore(key, services[j])) {
+                services[j + 1] = services[j];
+                j--;
+            }
+            services[j + 1] = key;
+        }
+    }
+
+    // returns true if 'a' should be placed before 'b'
+    static boolean shouldComeBefore(ServiceStats a, ServiceStats b) {
+        double rateA = a.getErrorRate();
+        double rateB = b.getErrorRate();
+        if (rateA != rateB) return rateA > rateB; // descending error rate
+        return a.getServiceName().compareTo(b.getServiceName()) < 0; // ascending name on tie
+    }
 
     static void printServiceStats() {
+        sortServicesByErrorRate();
         System.out.println();
         System.out.println("2. SERVICE STATISTICS");
         for (int i = 0; i < serviceCount; i++) {
@@ -46,8 +66,11 @@ public class LogForge {
             System.out.println("INFO: " + s.getInfo());
             System.out.println("WARN: " + s.getWarn());
             System.out.println("ERROR: " + s.getError());
+            System.out.printf("Error Rate: %.2f%%%n", s.getErrorRate());
         }
     }
+
+
 
     public static void main(String[] args) {
         if (args.length < 1) {
