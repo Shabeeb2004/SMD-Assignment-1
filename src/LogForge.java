@@ -12,9 +12,50 @@ public class LogForge {
     static int infoCount = 0;
     static int warnCount = 0;
     static int errorCount = 0;
+    static RequestStats[] requests = new RequestStats[5];
+    static int requestCount = 0;
 
     static LogEntry[] entries = new LogEntry[5];
     static int entryCount = 0;
+
+    static void recordRequest(int requestId, String service, String level) {
+        RequestStats r = findRequest(requestId);
+        if (r == null) {
+            r = new RequestStats(requestId);
+            if (requestCount == requests.length) {
+                RequestStats[] bigger = new RequestStats[requests.length * 2];
+                for (int i = 0; i < requests.length; i++) bigger[i] = requests[i];
+                requests = bigger;
+            }
+            requests[requestCount++] = r;
+        }
+        r.addRecord(service, level);
+    }
+
+    static RequestStats findRequest(int id) {
+        for (int i = 0; i < requestCount; i++) {
+            if (requests[i].getRequestId() == id) return requests[i];
+        }
+        return null;
+    }
+
+    static void printRequestStats() {
+        System.out.println();
+        System.out.println("4. REQUEST STATISTICS");
+        for (int i = 0; i < requestCount; i++) {
+            RequestStats r = requests[i];
+            System.out.println("Request: " + r.getRequestId());
+            System.out.println("Status: " + (r.isFailed() ? "FAILED" : "SUCCESS"));
+            System.out.println("Records: " + r.getTotal());
+            System.out.println("Errors: " + r.getErrors());
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < r.getServiceCount(); j++) {
+                sb.append(r.getServices()[j]);
+                if (j < r.getServiceCount() - 1) sb.append(" ");
+            }
+            System.out.println("Services: " + sb.toString());
+        }
+    }
     static void recordService(String service, String level) {
         ServiceStats s = findService(service);
         if (s == null) {
