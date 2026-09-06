@@ -1,10 +1,13 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class LogForge {
     static ServiceStats[] services = new ServiceStats[5];
     static int serviceCount = 0;
+    static StringBuilder report = new StringBuilder();
 
     static int totalLines = 0;
     static int validRecords = 0;
