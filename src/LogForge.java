@@ -87,6 +87,37 @@ public class LogForge {
             services[j + 1] = key;
         }
     }
+    static void sortEntriesByTimestamp() {
+        int n = entryCount;
+        long[] keys = new long[n];
+        int[] originalIndex = new int[n];
+        for (int i = 0; i < n; i++) {
+            keys[i] = toSeconds(entries[i].getTimestamp());
+            originalIndex[i] = i;
+        }
+
+        for (int i = 1; i < n; i++) {
+            LogEntry keyEntry = entries[i];
+            long keyTime = keys[i];
+            int keyIdx = originalIndex[i];
+            int j = i - 1;
+            while (j >= 0 && isAfter(keys[j], originalIndex[j], keyTime, keyIdx)) {
+                entries[j + 1] = entries[j];
+                keys[j + 1] = keys[j];
+                originalIndex[j + 1] = originalIndex[j];
+                j--;
+            }
+            entries[j + 1] = keyEntry;
+            keys[j + 1] = keyTime;
+            originalIndex[j + 1] = keyIdx;
+        }
+    }
+
+    // true if (time1, idx1) should be placed AFTER (time2, idx2)
+    static boolean isAfter(long time1, int idx1, long time2, int idx2) {
+        if (time1 != time2) return time1 > time2;
+        return idx1 < idx2;
+    }
 
     // returns true if 'a' should be placed before 'b'
     static boolean shouldComeBefore(ServiceStats a, ServiceStats b) {
