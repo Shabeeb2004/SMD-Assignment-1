@@ -69,6 +69,69 @@ public class LogForge {
             System.out.printf("Error Rate: %.2f%%%n", s.getErrorRate());
         }
     }
+    static void detectIncidents() {
+        System.out.println();
+        System.out.println("3. INCIDENTS");
+        boolean any = false;
+
+        for (int i = 0; i < serviceCount; i++) {
+            String svc = services[i].getServiceName();
+            LogEntry[] errs = new LogEntry[5];
+            int errCount = 0;
+
+            for (int j = 0; j < entryCount; j++) {
+                if (entries[j].getService().equals(svc) && entries[j].getLevel().equals("ERROR")) {
+                    if (errCount == errs.length) {
+                        LogEntry[] bigger = new LogEntry[errs.length * 2];
+                        for (int k = 0; k < errs.length; k++) bigger[k] = errs[k];
+                        errs = bigger;
+                    }
+                    errs[errCount++] = entries[j];
+                }
+            }
+
+            int idx = 0;
+            while (idx < errCount) {
+                int groupStart = idx;
+                int groupEnd = idx;
+                while (groupEnd + 1 < errCount &&
+                        secondsBetween(errs[groupStart].getTimestamp(), errs[groupEnd + 1].getTimestamp()) <= 60) {
+                    groupEnd++;
+                }
+                int groupSize = groupEnd - groupStart + 1;
+                if (groupSize >= 3) {
+                    any = true;
+                    System.out.println("Service: " + svc);
+                    System.out.println("First Error: " + errs[groupStart].getTimestamp());
+                    System.out.println("Last Error: " + errs[groupEnd].getTimestamp());
+                }
+                idx = groupEnd + 1;
+            }
+        }
+
+        if (!any) System.out.println("No incidents detected.");
+    }
+
+    static long secondsBetween(String t1, String t2) {
+        return toSeconds(t2) - toSeconds(t1);
+    }
+
+    static long toSeconds(String timestamp) {
+        int year = parseIntRange(timestamp, 0, 4);
+        int month = parseIntRange(timestamp, 5, 7);
+        int day = parseIntRange(timestamp, 8, 10);
+        int hour = parseIntRange(timestamp, 11, 13);
+        int minute = parseIntRange(timestamp, 14, 16);
+        int second = parseIntRange(timestamp, 17, 19);
+        long days = year * 372L + month * 31L + day;
+        return days * 86400L + hour * 3600L + minute * 60L + second;
+    }
+
+    static int parseIntRange(String s, int start, int end) {
+        int value = 0;
+        for (int i = start; i < end; i++) value = value * 10 + (s.charAt(i) - '0');
+        return value;
+    }
 
 
 
