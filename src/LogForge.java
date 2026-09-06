@@ -3,6 +3,8 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class LogForge {
+    static ServiceStats[] services = new ServiceStats[5];
+    static int serviceCount = 0;
 
     static int totalLines = 0;
     static int validRecords = 0;
@@ -13,6 +15,39 @@ public class LogForge {
 
     static LogEntry[] entries = new LogEntry[5];
     static int entryCount = 0;
+    static void recordService(String service, String level) {
+        ServiceStats s = findService(service);
+        if (s == null) {
+            s = new ServiceStats(service);
+            if (serviceCount == services.length) {
+                ServiceStats[] bigger = new ServiceStats[services.length * 2];
+                for (int i = 0; i < services.length; i++) bigger[i] = services[i];
+                services = bigger;
+            }
+            services[serviceCount++] = s;
+        }
+        s.addRecord(level);
+    }
+
+    static ServiceStats findService(String name) {
+        for (int i = 0; i < serviceCount; i++) {
+            if (services[i].getServiceName().equals(name)) return services[i];
+        }
+        return null;
+    }
+
+    static void printServiceStats() {
+        System.out.println();
+        System.out.println("2. SERVICE STATISTICS");
+        for (int i = 0; i < serviceCount; i++) {
+            ServiceStats s = services[i];
+            System.out.println("Service: " + s.getServiceName());
+            System.out.println("Total: " + s.getTotal());
+            System.out.println("INFO: " + s.getInfo());
+            System.out.println("WARN: " + s.getWarn());
+            System.out.println("ERROR: " + s.getError());
+        }
+    }
 
     public static void main(String[] args) {
         if (args.length < 1) {
